@@ -4,29 +4,87 @@ echo "~~~~~~~~~~~~~~~~开始执行脚本~~~~~~~~~~~~~~~~"
 
 # 返回上一级
 cd ..
-
 # 更新
 git pull
 
 DATE=`date '+%Y-%m-%d-%T'`
 #需要编译的 targetName
-TARGET_NAME="myApp"
+TARGET_NAME="myapp"
 #编译模式 工程默认有 Debug Release
 CONFIGURATION_TARGET=Release
 #编译路径                   路径需要根据自己需要调整
-BUILDPATH=~/FMProjects/builds/${TARGET_NAME}_${DATE}
+BUILDPATH=~/Desktop/ipa/${TARGET_NAME}_${DATE}
+
+
+#导出.ipa文件所在路径
+#exportFilePath=~/Desktop/ipa/${development_mode}
+#bundleId true:com.lius.InternalStorage  false:com.lius.newInternalStorage
+#team true:A3F454FS33  false:S9FB4H53JW
+isZhangDaiApple=false
+
+echo "~~~~~~~~~~~~~~~~选择打包证书方式~~~~~~~~~~~~~~~~"
+echo "        1 certificate1 (默认) "
+echo "        2 certificate2"
+
+# 读取用户输入并存到变量里
+read certificate
+sleep 0.5
+
+# 判读用户是否有输入
+if [ -n "$certificate" ]
+then
+if [ "$certificate" = "1" ]
+then
+isZhangDaiApple=false
+elif [ "$certificate" = "2" ]
+then
+isZhangDaiApple=true
+else
+echo "参数无效"
+exit 1
+fi
+else
+isZhangDaiApple=false
+fi
+
+account="certificate1"
+
+if [ $isZhangDaiApple = false ]
+then
+echo '账号1'
+cd ./${TARGET_NAME}.xcodeproj/
+# sed -i 直接修改源文件，'' 备份文件名, 's/要被取代的字串/新的字串/g', 需要设置bundleID的文件
+# 假设com.a.a是测试环境使用的，com.b.b是正式环境使用的
+sed -i '' 's/com.lius.newmyapp/com.lius.newmyapp/g' project.pbxproj || exit
+sed -i '' 's/AEFB4H53JW/DEF454FS33/g' project.pbxproj || exit
+cd ..
+echo '* 已更改bundle ID 为：com.lius.newmyapp'
+#输出的ipa目录
+BUILDPATH=${BUILDPATH}_Certificate1
+else
+echo '公司账号'
+account="KeTao"
+cd ./${TARGET_NAME}.xcodeproj/
+# sed -i 直接修改源文件，'' 备份文件名, 's/要被取代的字串/新的字串/g', 需要设置bundleID的文件
+sed -i '' 's/com.lius.newmyapp/com.lius.newmyapp/g' project.pbxproj || exit
+sed -i '' 's/DEF454FS33/AEFB4H53JW/g' project.pbxproj || exit
+cd ..
+echo '* 已更改bundle ID 为：com.lius.newmyapp'
+#输出的ipa目录
+BUILDPATH=${BUILDPATH}_Certificate2
+fi
+
+IPAPATH=${BUILDPATH}
 #archivePath
 ARCHIVEPATH=${BUILDPATH}/${TARGET_NAME}.xcarchive
-#输出的ipa目录
-IPAPATH=${BUILDPATH}
 
-# build version自动加1
-plistCommandPath='/usr/libexec/PlistBuddy'
-a=$($plistCommandPath -c "print:CFBundleVersion" './'${TARGET_NAME}'/Supports/Info.plist')
-#echo current CFBundleVersion:$a
-newValue=$((++a))
-#echo update CFBundleVersion: $a
-$plistCommandPath -c "set:CFBundleVersion $a" './'${TARGET_NAME}'/Supports/Info.plist'
+## build version自动加1
+#plistCommandPath='/usr/libexec/PlistBuddy'
+#a=$($plistCommandPath -c "print:CFBundleVersion" './'${TARGET_NAME}'/Supports/Info.plist')
+##echo current CFBundleVersion:$a
+#newValue=$((++a))
+##echo update CFBundleVersion: $a
+#$plistCommandPath -c "set:CFBundleVersion $a" './'${TARGET_NAME}'/Supports/Info.plist'
 
 #导出ipa 所需plist
 ADHOCExportOptionsPlist=./BuildFiles/ADHOCExportOptionsPlist.plist
@@ -102,7 +160,7 @@ IPAPATH=${IPAPATH}/${TARGET_NAME}.ipa
 if [ -f "$IPAPATH" ]
 then
 echo "导出ipa成功......"
-#open ${BUILDPATH}
+open ${BUILDPATH}
 else
 echo "导出ipa失败......"
 exit 1
@@ -129,7 +187,8 @@ open ${BUILDPATH}
 fi
 
 echo "~~~~~~~~~~~~~~~~配置信息~~~~~~~~~~~~~~~~~~~"
-echo "currentBundleVersion: $a"
+echo "current certificate : $account"
+#echo "currentBundleVersion: $a"
 echo "编译模式: ${CONFIGURATION_TARGET}"
 echo "导出ipa配置: ${ExportOptionsPlist}"
 echo "打包文件路径: ${ARCHIVEPATH}"
