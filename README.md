@@ -93,6 +93,18 @@ xcodebuild archive -workspace ${TARGET_NAME}.xcworkspace -scheme ${TARGET_NAME} 
 # 导出ipa文件，需要注意最后命令用来处理自动验证证书
 xcodebuild -exportArchive -archivePath ${ARCHIVEPATH} -exportOptionsPlist ${ExportOptionsPlist} -exportPath ${IPAPATH} -allowProvisioningUpdates
 
+
+# 示例操作：
+
+# 清楚缓存
+internalbuyer fumi$ xcodebuild clean -workspace myApp.xcworkspace -scheme myApp -configuration DEBUG
+
+# 导出archive
+xcodebuild archive -workspace myApp.xcworkspace -scheme myApp -archivePath "../ArchivePath" -configuration DEBUG
+
+# 导出ipa文件
+xcodebuild -exportArchive -archivePath '../ArchivePath.xcarchive' -exportOptionsPlist '/Users/xxx/Projects/Versions/ADHOCExportOptionsPlist.plist' -exportPath ../ -allowProvisioningUpdates
+
 ```
 
 
